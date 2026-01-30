@@ -20,6 +20,7 @@ $olympiads = $stmt->fetchAll();
         <a href="create_olympiad.php" class="btn btn-success">
             + Створити олімпіаду
         </a>
+        <a href="users.php" class="btn btn-primary mb-3">Управління користувачами</a>
     </div>
 
     <div class="card">

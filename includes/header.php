@@ -1,3 +1,9 @@
+<?php
+$path_prefix = '';
+if (strpos($_SERVER['PHP_SELF'], '/admin/') !== false || strpos($_SERVER['PHP_SELF'], '/student/') !== false) {
+    $path_prefix = '../';
+}
+?>
 <!DOCTYPE html>
 <html lang="uk" data-bs-theme="light">
 <head>
@@ -8,11 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
-    <style>
-        /* Додаткові стилі для плавності */
-        body { transition: background-color 0.3s, color 0.3s; }
-        .card { transition: background-color 0.3s, border-color 0.3s; }
-    </style>
+    <link rel="stylesheet" href="<?= $path_prefix ?>assets/css/style.css">
 
     <script>
         const storedTheme = localStorage.getItem('theme');
@@ -25,9 +27,9 @@
     </script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg border-bottom mb-4 shadow-sm" style="background-color: var(--bs-body-bg);">
+    <nav class="navbar navbar-expand-lg border-bottom mb-4" style="background-color: var(--bs-body-bg);">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="index.php">
+            <a class="navbar-brand fw-bold text-primary" href="<?= $path_prefix ?>index.php">
                 <i class="bi bi-mortarboard-fill"></i> Olympiad Platform
             </a>
 
@@ -38,7 +40,9 @@
                 </button>
 
                 <?php if(isset($_SESSION['user_id'])): ?>
-                    <div class="vr"></div> <div class="dropdown">
+                    <div class="vr"></div> 
+                    
+                    <div class="dropdown">
                         <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle fs-5 me-2"></i>
                             <span class="d-none d-sm-inline fw-bold">
@@ -46,9 +50,9 @@
                             </span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text text-muted small">Ваша роль: <strong><?= $_SESSION['role'] === 'admin' ? 'Адміністратор' : 'Учасник' ?></strong></span></li>
+                            <li><span class="dropdown-item-text text-muted small">Роль: <strong><?= $_SESSION['role'] === 'admin' ? 'Адмін' : 'Студент' ?></strong></span></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="../logout.php"><i class="bi bi-box-arrow-right"></i> Вийти</a></li>
+                            <li><a class="dropdown-item text-danger" href="<?= $path_prefix ?>logout.php"><i class="bi bi-box-arrow-right"></i> Вийти</a></li>
                         </ul>
                     </div>
                 <?php endif; ?>
@@ -74,13 +78,11 @@
             toggleButton.classList.replace('btn-outline-light', 'btn-outline-secondary');
         }
     }
-
     updateIcon();
 
     toggleButton.addEventListener('click', () => {
         const currentTheme = htmlElement.getAttribute('data-bs-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
         htmlElement.setAttribute('data-bs-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         updateIcon();

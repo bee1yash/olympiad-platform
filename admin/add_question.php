@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt_opt->execute([$question_id, $correct_text]);
             }
         } else {
-            // --- СТАРА ЧАСТИНА ДЛЯ ТЕСТІВ ---
             if (!empty($_POST['options'])) {
                 $options = $_POST['options'];
                 $is_correct_arr = isset($_POST['is_correct']) ? $_POST['is_correct'] : [];

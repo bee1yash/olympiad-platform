@@ -1,0 +1,43 @@
+
+body {
+    background-color: #f8f9fa;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+[data-bs-theme="dark"] body {
+    background-color: #212529; 
+    color: #f8f9fa; 
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.bi {
+    vertical-align: -0.125em;
+}
+[data-bs-theme="dark"] .card {
+    background-color: #2b3035;
+    border-color: #495057;     
+    color: #f8f9fa;            
+}
+
+[data-bs-theme="dark"] .card-header {
+    background-color: #212529; 
+    border-bottom-color: #495057;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .card-footer a {
+    color: #6ea8fe; 
+}
+
+[data-bs-theme="dark"] .bg-white {
+    background-color: transparent !important;
+    color: inherit !important;
+}

@@ -17,26 +17,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmt->rowCount() > 0) {
         $message = "Користувач з таким логіном вже існує!";
     } else {
-        $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
-        $sql = "INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)";
+       $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $role = 'student'; 
+        $status = 'pending'; 
+        $sql = "INSERT INTO users (username, password, full_name, role, status) VALUES (?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        
-        if ($stmt->execute([$username, $password_hash, $full_name, $role])) {
-            header("Location: login.php");
-            exit;
-        } else {
-            $message = "Помилка реєстрації!";
-        }
+
+    if ($stmt->execute([$username, $password_hash, $full_name, $role, $status])) {
+    $message = "Реєстрація успішна! Ваш акаунт очікує підтвердження адміністратором. Ви не зможете увійти, доки вас не активують.";
+    } else {
+    $message = "Помилка реєстрації!";
+}
     }
 }
+
 ?>
 <?php include 'includes/header.php'; ?>
 
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card mt-5">
-            <div class="card-header text-center bg-white">
+            <div class="card-header text-center">
                 <h4>Реєстрація учасника</h4>
             </div>
             <div class="card-body">
