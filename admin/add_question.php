@@ -25,13 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $correct_text = trim($_POST['correct_text_answer']);
             if (!empty($correct_text)) {
                 $sql_opt = "INSERT INTO options (question_id, option_text, is_correct) VALUES (?, ?, 1)";
-                $stmt_opt = $pdo->prepare($sql_opt);
-                $stmt_opt->execute([$question_id, $correct_text]);
+                $pdo->prepare($sql_opt)->execute([$question_id, $correct_text]);
             }
         } else {
             if (!empty($_POST['options'])) {
                 $options = $_POST['options'];
-                $is_correct_arr = isset($_POST['is_correct']) ? $_POST['is_correct'] : [];
+                
+                $raw_correct = isset($_POST['is_correct']) ? $_POST['is_correct'] : [];
+                
+                $is_correct_arr = is_array($raw_correct) ? $raw_correct : [$raw_correct];
+
                 $sql_opt = "INSERT INTO options (question_id, option_text, is_correct) VALUES (?, ?, ?)";
                 $stmt_opt = $pdo->prepare($sql_opt);
 
@@ -57,9 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Додавання питання</h4>
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Додавання питання</h4>
                 </div>
                 <div class="card-body">
                     <form method="POST">
@@ -74,8 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Тип питання</label>
                                 <select name="question_type" id="q_type" class="form-select" onchange="toggleOptions()">
-                                    <option value="single">Один з багатьох (Тест)</option>
-                                    <option value="multiple">Багато з багатьох (Тест)</option>
+                                    <option value="single">Один з багатьох (Radio)</option>
+                                    <option value="multiple">Багато з багатьох (Checkbox)</option>
                                     <option value="text">Текстова відповідь</option>
                                 </select>
                             </div>
@@ -85,27 +88,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                         </div>
 
-                        <div id="options_block" class="bg-light p-3 border rounded mb-3">
+                        <div id="options_block" class="bg-body-tertiary p-3 border rounded mb-3">
                             <label class="form-label fw-bold">Варіанти відповідей:</label>
-                            <small class="text-muted d-block mb-2">Введіть варіанти та поставте галочку біля правильних.</small>
+                            <small class="text-muted d-block mb-2" id="hint_text">
+                                Введіть варіанти та виберіть правильний.
+                            </small>
+                            
                             <?php for($i=0; $i<4; $i++): ?>
                             <div class="input-group mb-2">
                                 <div class="input-group-text">
-                                    <input class="form-check-input mt-0" type="checkbox" name="is_correct[]" value="<?= $i ?>">
+                                    <input class="form-check-input mt-0 correct-selection" 
+                                           type="radio" 
+                                           name="is_correct" 
+                                           value="<?= $i ?>">
                                 </div>
                                 <input type="text" name="options[<?= $i ?>]" class="form-control" placeholder="Варіант <?= $i+1 ?>">
                             </div>
                             <?php endfor; ?>
                         </div>
 
-                        <div id="text_answer_block" class="bg-light p-3 border rounded mb-3" style="display:none;">
+                        <div id="text_answer_block" class="bg-body-tertiary p-3 border rounded mb-3" style="display:none;">
                             <label class="form-label fw-bold">Правильна відповідь:</label>
-                            <small class="text-muted d-block mb-2">Введіть точну відповідь для автоматичної перевірки (регістр не важливий).</small>
-                            <input type="text" name="correct_text_answer" class="form-control" placeholder="Наприклад: 1991 або Київ">
+                            <small class="text-muted d-block mb-2">Введіть точну відповідь (регістр не важливий).</small>
+                            <input type="text" name="correct_text_answer" class="form-control" placeholder="Наприклад: Київ">
                         </div>
 
-                        <button type="submit" class="btn btn-success">Зберегти питання</button>
-                        <a href="questions.php?id=<?= $olympiad_id ?>" class="btn btn-secondary">Назад</a>
+                        <div class="d-flex justify-content-between">
+                            <a href="questions.php?id=<?= $olympiad_id ?>" class="btn btn-secondary">Назад</a>
+                            <button type="submit" class="btn btn-success">Зберегти питання</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -118,16 +129,34 @@ function toggleOptions() {
     var type = document.getElementById('q_type').value;
     var optionsBlock = document.getElementById('options_block');
     var textBlock = document.getElementById('text_answer_block');
+    var hintText = document.getElementById('hint_text');
     
+    var inputs = document.querySelectorAll('.correct-selection');
+
     if (type === 'text') {
         optionsBlock.style.display = 'none';
         textBlock.style.display = 'block';
     } else {
         optionsBlock.style.display = 'block';
         textBlock.style.display = 'none';
+
+        inputs.forEach(function(input) {
+            if (type === 'single') {
+                input.type = 'radio';
+                input.name = 'is_correct'; 
+                hintText.innerText = "Оберіть одну правильну відповідь.";
+            } else {
+                input.type = 'checkbox';
+                input.name = 'is_correct[]';
+                hintText.innerText = "Оберіть декілька правильних відповідей.";
+            }
+        });
     }
 }
-toggleOptions();
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleOptions();
+});
 </script>
 
 <?php include '../includes/footer.php'; ?>
