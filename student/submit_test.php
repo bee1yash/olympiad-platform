@@ -1,79 +1,78 @@
 <?php
-
 session_start();
 require '../config/db.php';
 
 if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: ../login.php"); exit;
+    header("Location: index.php"); exit;
 }
 
 $user_id = $_SESSION['user_id'];
 $olympiad_id = (int)$_POST['olympiad_id'];
-$user_answers = isset($_POST['answers']) ? $_POST['answers'] : [];
+$answers = isset($_POST['answers']) ? $_POST['answers'] : [];
+
+$stmt_check = $pdo->prepare("SELECT id FROM results WHERE user_id = ? AND olympiad_id = ? AND finished_at IS NOT NULL");
+$stmt_check->execute([$user_id, $olympiad_id]);
+if ($stmt_check->fetch()) {
+    die("Ви вже здали цю олімпіаду.");
+}
+
+$total_score = 0;
 
 $stmt_q = $pdo->prepare("SELECT * FROM questions WHERE olympiad_id = ?");
 $stmt_q->execute([$olympiad_id]);
 $questions = $stmt_q->fetchAll();
 
-$total_score = 0;
-
 foreach ($questions as $q) {
     $q_id = $q['id'];
     $points = $q['points'];
-    $type = $q['question_type'];
+    $user_ans = isset($answers[$q_id]) ? $answers[$q_id] : null;
+    $points_awarded = 0;
+    
+    $sql_save = "INSERT INTO user_answers (user_id, olympiad_id, question_id, answer_text, option_id, points_awarded) VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt_save = $pdo->prepare($sql_save);
 
-    if (!isset($user_answers[$q_id])) {
-        continue;
-    }
-
-    $user_ans = $user_answers[$q_id]; 
-
-    if ($type === 'single') {
-        $stmt_check = $pdo->prepare("SELECT is_correct FROM options WHERE id = ?");
-        $stmt_check->execute([$user_ans]);
-        $is_correct = $stmt_check->fetchColumn();
-
+    if ($q['question_type'] === 'single') {
+        $option_id = (int)$user_ans;
+        
+        $stmt_correct = $pdo->prepare("SELECT is_correct FROM options WHERE id = ?");
+        $stmt_correct->execute([$option_id]);
+        $is_correct = $stmt_correct->fetchColumn();
+        
         if ($is_correct) {
-            $total_score += $points;
+            $points_awarded = $points;
         }
+        $stmt_save->execute([$user_id, $olympiad_id, $q_id, null, $option_id, $points_awarded]);
 
-    } elseif ($type === 'multiple') {
-        $stmt_correct = $pdo->prepare("SELECT id FROM options WHERE question_id = ? AND is_correct = 1");
-        $stmt_correct->execute([$q_id]);
-        $correct_options_db = $stmt_correct->fetchAll(PDO::FETCH_COLUMN); 
-
+    } elseif ($q['question_type'] === 'multiple') {
         if (is_array($user_ans)) {
-            sort($user_ans);
-            sort($correct_options_db);
-
-            if ($user_ans == $correct_options_db) {
-                $total_score += $points;
+            foreach($user_ans as $opt_id) {
+                 $stmt_save->execute([$user_id, $olympiad_id, $q_id, null, $opt_id, 0]);
             }
         }
 
-    } elseif ($type === 'text') {
+    } elseif ($q['question_type'] === 'text') {
+        $text_ans = trim($user_ans);
         
-        $stmt_correct = $pdo->prepare("SELECT option_text FROM options WHERE question_id = ? AND is_correct = 1 LIMIT 1");
+        $stmt_correct = $pdo->prepare("SELECT option_text FROM options WHERE question_id = ? AND is_correct = 1");
         $stmt_correct->execute([$q_id]);
-        $correct_answer_db = $stmt_correct->fetchColumn(); 
+        $correct_db = $stmt_correct->fetchColumn();
 
-        $user_clean = mb_strtolower(trim($user_ans));
-        $db_clean = mb_strtolower(trim($correct_answer_db));
-
-        if ($correct_answer_db && $user_clean == $db_clean) {
-            $total_score += $points;
+        if (mb_strtolower($text_ans) == mb_strtolower(trim($correct_db))) {
+            $points_awarded = $points;
         }
+        
+        $stmt_save->execute([$user_id, $olympiad_id, $q_id, $text_ans, null, $points_awarded]);
     }
+    
+    $total_score += $points_awarded;
 }
 
-$finished_at = date('Y-m-d H:i:s');
+$stmt_update = $pdo->prepare("UPDATE results SET finished_at = NOW(), total_score = ? WHERE user_id = ? AND olympiad_id = ?");
+$stmt_update->execute([$total_score, $user_id, $olympiad_id]);
 
-$sql_update = "UPDATE results 
-               SET total_score = ?, finished_at = ? 
-               WHERE user_id = ? AND olympiad_id = ?";
-$stmt_update = $pdo->prepare($sql_update);
-$stmt_update->execute([$total_score, $finished_at, $user_id, $olympiad_id]);
+if ($stmt_update->rowCount() == 0) {
+    $pdo->prepare("INSERT INTO results (user_id, olympiad_id, started_at, finished_at, total_score) VALUES (?, ?, NOW(), NOW(), ?)")
+        ->execute([$user_id, $olympiad_id, $total_score]);
+}
 
-header("Location: result.php?id=" . $olympiad_id);
-exit;
-?>
+header("Location: index.php");
