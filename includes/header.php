@@ -1,7 +1,21 @@
 <?php
+
 $path_prefix = '';
-if (strpos($_SERVER['PHP_SELF'], '/admin/') !== false || strpos($_SERVER['PHP_SELF'], '/student/') !== false) {
+if (strpos($_SERVER['PHP_SELF'], '/admin/') !== false || 
+    strpos($_SERVER['PHP_SELF'], '/student/') !== false || 
+    strpos($_SERVER['PHP_SELF'], '/specialist/') !== false) {
     $path_prefix = '../';
+}
+
+$role_label = 'Гість';
+if (isset($_SESSION['role'])) {
+    if ($_SESSION['role'] === 'admin') {
+        $role_label = 'Адміністратор';
+    } elseif ($_SESSION['role'] === 'specialist') {
+        $role_label = 'Фахівець';
+    } else {
+        $role_label = 'Студент';
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -49,8 +63,8 @@ if (strpos($_SERVER['PHP_SELF'], '/admin/') !== false || strpos($_SERVER['PHP_SE
                                 <?= htmlspecialchars($_SESSION['full_name']) ?>
                             </span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text text-muted small">Роль: <strong><?= $_SESSION['role'] === 'admin' ? 'Адмін' : 'Студент' ?></strong></span></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><span class="dropdown-item-text text-muted small">Роль: <strong><?= $role_label ?></strong></span></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="<?= $path_prefix ?>logout.php"><i class="bi bi-box-arrow-right"></i> Вийти</a></li>
                         </ul>
