@@ -6,6 +6,18 @@ ___
 ### Changelog
 ___
 
+## 1.0.3
+
+ADD: [можливість перевіряти відповіді користувача, не афішуючи його](https://github.com/bee1yash/olympiad-platform/issues/6)
+
+FIX: Роль спеціаліста не показувалась в меню
+
+FIX: Logout лінка не працювала для спеціаліста
+
+FIX: [Vulnerability issue with SMTP](https://github.com/bee1yash/olympiad-platform/issues/7)
+
+Tweak: Створення питань адміністратором було прибрано
+
 ## 1.0.2
 
 ADD: Верифікованому користувачу надсилається лист на пошту про підтвердження акаунта

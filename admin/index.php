@@ -46,7 +46,6 @@ $olympiads = $stmt->fetchAll();
                                 <td><?= $olympiad['start_time'] ?></td>
                                 <td><?= $olympiad['time_limit_minutes'] ?></td>
                                 <td>
-                                    <a href="questions.php?id=<?= $olympiad['id'] ?>" class="btn btn-sm btn-info text-white">Питання</a>
                                     <a href="edit_olympiad.php?id=<?= $olympiad['id'] ?>" class="btn btn-sm btn-warning">Редагувати</a>
                                     <a href="#" class="btn btn-sm btn-danger">Видалити</a>
                                 </td>

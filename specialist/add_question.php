@@ -14,11 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $q_type = $_POST['question_type'];
     $points = (int)$_POST['points'];
     $olympiad_id = (int)$_POST['olympiad_id'];
+    
+    $requires_manual_check = isset($_POST['requires_manual_check']) ? 1 : 0;
 
-    $sql = "INSERT INTO questions (olympiad_id, question_text, question_type, points) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO questions (olympiad_id, question_text, question_type, points, requires_manual_check) VALUES (?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     
-    if ($stmt->execute([$olympiad_id, $q_text, $q_type, $points])) {
+    if ($stmt->execute([$olympiad_id, $q_text, $q_type, $points, $requires_manual_check])) {
         $question_id = $pdo->lastInsertId();
 
         if ($q_type === 'text') {
@@ -32,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $options = $_POST['options'];
                 
                 $raw_correct = isset($_POST['is_correct']) ? $_POST['is_correct'] : [];
-                
                 $is_correct_arr = is_array($raw_correct) ? $raw_correct : [$raw_correct];
 
                 $sql_opt = "INSERT INTO options (question_id, option_text, is_correct) VALUES (?, ?, ?)";
@@ -57,11 +58,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <?php include '../includes/header.php'; ?>
 
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
+            <div class="card shadow-sm border-info">
+                <div class="card-header bg-info text-white">
                     <h4 class="mb-0">Додавання питання</h4>
                 </div>
                 <div class="card-body">
@@ -69,13 +70,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <input type="hidden" name="olympiad_id" value="<?= $olympiad_id ?>">
                         
                         <div class="mb-3">
-                            <label class="form-label">Текст питання</label>
+                            <label class="form-label fw-bold">Текст питання</label>
                             <textarea name="question_text" class="form-control" rows="3" required></textarea>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Тип питання</label>
+                                <label class="form-label fw-bold">Тип питання</label>
                                 <select name="question_type" id="q_type" class="form-select" onchange="toggleOptions()">
                                     <option value="single">Один з багатьох (Radio)</option>
                                     <option value="multiple">Багато з багатьох (Checkbox)</option>
@@ -83,9 +84,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Бали за питання</label>
+                                <label class="form-label fw-bold">Бали за питання</label>
                                 <input type="number" name="points" class="form-control" value="1" min="1">
                             </div>
+                        </div>
+
+                        <div class="form-check form-switch mb-4 p-3 bg-light border rounded">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="manual_check" name="requires_manual_check" value="1">
+                            <label class="form-check-label fw-bold text-info" for="manual_check">
+                                <i class="bi bi-person-check-fill"></i> Потрібна додаткова перевірка фахівцем
+                            </label>
+                            <small class="d-block text-muted ms-5 mt-1">Якщо увімкнено, ви зможете змінити бал за це питання вручну після здачі тесту.</small>
                         </div>
 
                         <div id="options_block" class="bg-body-tertiary p-3 border rounded mb-3">
@@ -115,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                         <div class="d-flex justify-content-between">
                             <a href="questions.php?id=<?= $olympiad_id ?>" class="btn btn-secondary">Назад</a>
-                            <button type="submit" class="btn btn-success">Зберегти питання</button>
+                            <button type="submit" class="btn btn-info text-white">Зберегти питання</button>
                         </div>
                     </form>
                 </div>
