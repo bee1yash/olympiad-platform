@@ -16,13 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $end_time = $_POST['end_time'];
     $time_limit = (int) $_POST['time_limit'];
     $created_by = $_SESSION['user_id'];
-
-    $sql = "INSERT INTO olympiads (title, description, start_time, end_time, time_limit_minutes, created_by) 
-            VALUES (?, ?, ?, ?, ?, ?)";
+    $show_answers = isset($_POST['show_answers']) ? 1 : 0;
+    $sql = "INSERT INTO olympiads (title, description, start_time, end_time, time_limit_minutes, created_by, show_answers) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     
-    if ($stmt->execute([$title, $description, $start_time, $end_time, $time_limit, $created_by])) {
-        header("Location: index.php"); 
+    if ($stmt->execute([$title, $description, $start_time, $end_time, $time_limit, $created_by, $show_answers])) {
+        header("Location: index.php");
         exit;
     } else {
         $message = "Помилка при створенні олімпіади.";
@@ -70,7 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <label class="form-label">Ліміт часу на проходження (хвилини)</label>
                             <input type="number" name="time_limit" class="form-control" placeholder="Наприклад: 60" required>
                         </div>
-
+                        <div class="form-check form-switch mb-3 p-3 bg-light border rounded">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="show_answers" name="show_answers" value="1" <?= (isset($olympiad['show_answers']) && $olympiad['show_answers']) ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-bold text-success" for="show_answers">
+                                <i class="bi bi-eye-fill"></i> Показувати правильні відповіді студентам після завершення
+                            </label>
+                        </div>
                         <div class="d-flex justify-content-between">
                             <a href="index.php" class="btn btn-secondary">Скасувати</a>
                             <button type="submit" class="btn btn-success">Створити</button>

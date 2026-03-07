@@ -25,14 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $start_time = $_POST['start_time'];
     $end_time = $_POST['end_time'];
     $time_limit = (int) $_POST['time_limit'];
-
+    $show_answers = isset($_POST['show_answers']) ? 1 : 0;
     $sql = "UPDATE olympiads 
-            SET title=?, description=?, start_time=?, end_time=?, time_limit_minutes=? 
-            WHERE id=?";
+            SET title = ?, description = ?, start_time = ?, end_time = ?, time_limit_minutes = ?, show_answers = ? 
+            WHERE id = ?";
     $stmt_update = $pdo->prepare($sql);
     
-    if ($stmt_update->execute([$title, $description, $start_time, $end_time, $time_limit, $id])) {
-        header("Location: index.php"); 
+    if ($stmt->execute([$title, $description, $start_time, $end_time, $time_limit, $show_answers, $id])) {
+        header("Location: index.php");
         exit;
     } else {
         $message = "Помилка оновлення.";
@@ -83,7 +83,12 @@ $end_value = date('Y-m-d\TH:i', strtotime($olympiad['end_time']));
                             <label class="form-label">Ліміт часу (хв)</label>
                             <input type="number" name="time_limit" class="form-control" value="<?= $olympiad['time_limit_minutes'] ?>" required>
                         </div>
-
+                        <div class="form-check form-switch mb-3 p-3 bg-light border rounded">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="show_answers" name="show_answers" value="1" <?= (isset($olympiad['show_answers']) && $olympiad['show_answers']) ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-bold text-success" for="show_answers">
+                                <i class="bi bi-eye-fill"></i> Показувати правильні відповіді студентам після завершення
+                            </label>
+                        </div>
                         <div class="d-flex justify-content-between">
                             <a href="index.php" class="btn btn-secondary">Скасувати</a>
                             <button type="submit" class="btn btn-warning">Зберегти зміни</button>

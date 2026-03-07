@@ -4,10 +4,11 @@ session_start();
 require 'config/db.php';
 
 $message = '';
-
+$submitted_username = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
+    $submitted_username = htmlspecialchars($username);
 
     $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
 $stmt->execute([$username]);
@@ -55,7 +56,7 @@ if ($user && password_verify($password, $user['password'])) {
                 <form method="POST" action="">
                     <div class="mb-3">
                         <label class="form-label">Логін</label>
-                        <input type="text" name="username" class="form-control" required>
+                        <input type="text" name="username" class="form-control" value="<?= $submitted_username ?>" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Пароль</label>

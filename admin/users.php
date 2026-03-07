@@ -31,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             try {
                 $pdo->beginTransaction();
 
+                $pdo->prepare("DELETE FROM user_answers WHERE user_id = ?")->execute([$u_id]);
+
                 $pdo->prepare("DELETE FROM results WHERE user_id = ?")->execute([$u_id]);
 
                 $pdo->prepare("DELETE FROM olympiads WHERE created_by = ?")->execute([$u_id]);
