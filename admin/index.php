@@ -81,6 +81,7 @@ $olympiads = $stmt->fetchAll();
                     <tbody>
                         <?php foreach($olympiads as $olympiad): ?>
                             <tr>
+                            </td>
                                 <td><?= $olympiad['id'] ?></td>
                                 <td>
                                     <strong><?= htmlspecialchars($olympiad['title']) ?></strong>
@@ -88,16 +89,20 @@ $olympiads = $stmt->fetchAll();
                                 <td><?= date('d.m.Y H:i', strtotime($olympiad['start_time'])) ?></td>
                                 <td><?= $olympiad['time_limit_minutes'] ?></td>
                                 <td class="text-end">
-                                    <a href="edit_olympiad.php?id=<?= $olympiad['id'] ?>" class="btn btn-sm btn-warning">
-                                        <i class="bi bi-pencil"></i> Редагувати
-                                    </a>
-                                    <form method="POST" class="d-inline" onsubmit="return confirm('Ви впевнені? Це безповоротно видалить олімпіаду, всі питання та результати студентів!');">
-                                        <input type="hidden" name="olympiad_id" value="<?= $olympiad['id'] ?>">
-                                        <button type="submit" name="delete_olympiad" class="btn btn-sm btn-danger">
-                                            <i class="bi bi-trash"></i> Видалити
-                                        </button>
-                                    </form>
-                                </td>
+    <a href="olympiad_report.php?id=<?= $olympiad['id'] ?>" class="btn btn-sm btn-info text-white">
+        <i class="bi bi-bar-chart-fill"></i> Звіт
+    </a>
+    
+    <a href="edit_olympiad.php?id=<?= $olympiad['id'] ?>" class="btn btn-sm btn-warning">
+        <i class="bi bi-pencil"></i> Редагувати
+    </a>
+    <form method="POST" class="d-inline" onsubmit="return confirm('Ви впевнені? Це безповоротно видалить олімпіаду, всі питання та результати студентів!');">
+        <input type="hidden" name="olympiad_id" value="<?= $olympiad['id'] ?>">
+        <button type="submit" name="delete_olympiad" class="btn btn-sm btn-danger">
+            <i class="bi bi-trash"></i> Видалити
+        </button>
+    </form>
+</td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

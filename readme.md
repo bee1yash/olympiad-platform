@@ -6,9 +6,17 @@ ___
 ### Changelog
 ___
 
+## 1.0.4
+
+ADD: [Генерація звіту для користувача](https://github.com/bee1yash/olympiad-platform/issues/2)
+
+ADD: [Дешборд для фахівця](https://github.com/bee1yash/olympiad-platform/issues/4)
+
+ADD: [Загальний звіт для адміністраторів](https://github.com/bee1yash/olympiad-platform/issues/5)
+
 ## 1.0.3
 
-ADD: [можливість перевіряти відповіді користувача, не афішуючи його](https://github.com/bee1yash/olympiad-platform/issues/6)
+ADD: [Можливість перевіряти відповіді користувача, не афішуючи його](https://github.com/bee1yash/olympiad-platform/issues/6)
 
 FIX: Роль спеціаліста не показувалась в меню
 
