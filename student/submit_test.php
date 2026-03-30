@@ -13,7 +13,7 @@ $answers = isset($_POST['answers']) ? $_POST['answers'] : [];
 $stmt_check = $pdo->prepare("SELECT id FROM results WHERE user_id = ? AND olympiad_id = ? AND finished_at IS NOT NULL");
 $stmt_check->execute([$user_id, $olympiad_id]);
 if ($stmt_check->fetch()) {
-    die("Ви вже здали цю олімпіаду.");
+    die("Ви вже здали це змагання.");
 }
 
 $total_score = 0;

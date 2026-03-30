@@ -27,7 +27,7 @@ $results = $stmt->fetchAll();
 <div class="container mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="index.php">Олімпіади</a></li>
+            <li class="breadcrumb-item"><a href="index.php">Змагання</a></li>
             <li class="breadcrumb-item active">Результати</li>
         </ol>
     </nav>
@@ -67,7 +67,7 @@ $results = $stmt->fetchAll();
                     </tbody>
                 </table>
             <?php else: ?>
-                <p class="text-center text-muted py-4">Ще ніхто не проходив цю олімпіаду.</p>
+                <p class="text-center text-muted py-4">Ще ніхто не проходив це змагання.</p>
             <?php endif; ?>
         </div>
     </div>

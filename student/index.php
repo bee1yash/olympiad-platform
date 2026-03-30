@@ -22,7 +22,7 @@ $olympiads = $stmt->fetchAll();
 
 <div class="container mt-4">
     <h2>Вітаємо, <?= htmlspecialchars($_SESSION['full_name']) ?>!</h2>
-    <p class="text-muted">Оберіть олімпіаду для проходження.</p>
+    <p class="text-muted">Оберіть змагання для проходження.</p>
 
     <div class="row">
         <?php foreach($olympiads as $olymp): ?>
@@ -90,7 +90,7 @@ $olympiads = $stmt->fetchAll();
         
         <?php if(empty($olympiads)): ?>
             <div class="col-12">
-                <div class="alert alert-info">Наразі немає доступних олімпіад.</div>
+                <div class="alert alert-info">Наразі немає доступних змагань.</div>
             </div>
         <?php endif; ?>
     </div>

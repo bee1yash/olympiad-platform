@@ -18,7 +18,7 @@ $stmt_res->execute([$user_id, $olympiad_id]);
 $result = $stmt_res->fetch();
 
 if ($result && $result['finished_at']) {
-    die("Ви вже завершили цю олімпіаду.");
+    die("Ви вже завершили це змагання.");
 }
 if (!$result) {
     header("Location: start_test.php?id=" . $olympiad_id); exit;

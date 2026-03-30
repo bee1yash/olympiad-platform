@@ -153,7 +153,7 @@ $active_students = $pdo->query("SELECT * FROM users WHERE status = 'active' AND 
                                 <td>
                                     <form method="POST">
                                         <input type="hidden" name="user_id" value="<?= $s['id'] ?>">
-                                        <button type="submit" name="action" value="delete" class="btn btn-sm btn-outline-danger" onclick="return confirm('Видалити фахівця? Всі його олімпіади теж будуть видалені!')">Видалити</button>
+                                        <button type="submit" name="action" value="delete" class="btn btn-sm btn-outline-danger" onclick="return confirm('Видалити фахівця? Всі його питання до змагань теж будуть видалені!')">Видалити</button>
                                     </form>
                                 </td>
                             </tr>

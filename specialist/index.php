@@ -15,7 +15,7 @@ $olympiads = $stmt->fetchAll();
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-briefcase"></i> Кабінет Фахівця</h2>
-        <span class="text-muted">Ви не можете створювати олімпіади, але можете керувати питаннями.</span>
+        <span class="text-muted">Ви не можете створювати змагання, але можете керувати питаннями.</span>
     </div>
 
     <div class="row">

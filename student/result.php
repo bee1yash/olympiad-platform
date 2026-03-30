@@ -14,7 +14,7 @@ $stmt->execute([$olympiad_id]);
 $olymp = $stmt->fetch();
 
 if (!$olymp) {
-    die("Олімпіаду не знайдено.");
+    die("Змагання не знайдено.");
 }
 
 $stmt_res = $pdo->prepare("SELECT * FROM results WHERE user_id = ? AND olympiad_id = ? AND finished_at IS NOT NULL");
@@ -22,7 +22,7 @@ $stmt_res->execute([$user_id, $olympiad_id]);
 $result = $stmt_res->fetch();
 
 if (!$result) {
-    die("Ви ще не завершили цю олімпіаду або результатів немає.");
+    die("Ви ще не завершили це змагання або результатів немає.");
 }
 
 $show_answers = (bool)$olymp['show_answers'];
@@ -69,7 +69,7 @@ $questions = $stmt_q->fetchAll();
 
     <?php if(!$show_answers): ?>
         <div class="alert alert-info border-info">
-            <i class="bi bi-info-circle-fill"></i> Адміністратор приховав правильні відповіді для цієї олімпіади. Ви можете бачити лише свої відповіді та отримані бали.
+            <i class="bi bi-info-circle-fill"></i> Адміністратор приховав правильні відповіді для цього змагання. Ви можете бачити лише свої відповіді та отримані бали.
         </div>
     <?php endif; ?>
 

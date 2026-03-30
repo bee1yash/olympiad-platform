@@ -17,7 +17,7 @@ $stmt->execute([$olympiad_id]);
 $olympiad = $stmt->fetch();
 
 if (!$olympiad) {
-    die("Олімпіаду не знайдено.");
+    die("Змагання не знайдено.");
 }
 
 $stmt_max = $pdo->prepare("SELECT SUM(points) FROM questions WHERE olympiad_id = ?");
@@ -86,7 +86,7 @@ $in_progress = $stmt_prog->fetchAll();
                 </table>
             <?php else: ?>
                 <div class="p-4 text-center text-muted">
-                    Жоден учасник ще не завершив цю олімпіаду.
+                    Жоден учасник ще не завершив це змагання.
                 </div>
             <?php endif; ?>
         </div>

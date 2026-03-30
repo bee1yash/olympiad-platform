@@ -17,7 +17,7 @@ $stmt = $pdo->prepare("SELECT * FROM olympiads WHERE id = ?");
 $stmt->execute([$id]);
 $olympiad = $stmt->fetch();
 
-if (!$olympiad) { die("Олімпіаду не знайдено"); }
+if (!$olympiad) { die("Змагання не знайдено"); }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $title = trim($_POST['title']);
@@ -59,7 +59,7 @@ $end_value = date('Y-m-d\TH:i', strtotime($olympiad['end_time']));
 
                     <form method="POST">
                         <div class="mb-3">
-                            <label class="form-label">Назва олімпіади</label>
+                            <label class="form-label">Назва змагання</label>
                             <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($olympiad['title']) ?>" required>
                         </div>
                         

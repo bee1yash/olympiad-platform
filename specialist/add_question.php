@@ -14,8 +14,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $q_type = $_POST['question_type'];
     $points = (int)$_POST['points'];
     $olympiad_id = (int)$_POST['olympiad_id'];
+
+    $stmt_event = $pdo->prepare("SELECT event_type FROM olympiads WHERE id = ?");
+    $stmt_event->execute([$olympiad_id]);
     
-    $requires_manual_check = isset($_POST['requires_manual_check']) ? 1 : 0;
+    $event_type = $stmt_event->fetchColumn();
+    if ($event_type === 'contest') {
+        $requires_manual_check = 1;
+    } else {
+        $requires_manual_check = isset($_POST['requires_manual_check']) ? 1 : 0;
+    }
 
     $sql = "INSERT INTO questions (olympiad_id, question_text, question_type, points, requires_manual_check) VALUES (?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
@@ -54,6 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $message = "Помилка при збереженні питання.";
     }
 }
+
+$stmt_current_event = $pdo->prepare("SELECT event_type FROM olympiads WHERE id = ?");
+$stmt_current_event->execute([$olympiad_id]);
+$current_event_type = $stmt_current_event->fetchColumn() ?: 'olympiad';
 ?>
 
 <?php include '../includes/header.php'; ?>
@@ -89,13 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                         </div>
 
-                        <div class="form-check form-switch mb-4 p-3 bg-light border rounded">
-                            <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="manual_check" name="requires_manual_check" value="1">
-                            <label class="form-check-label fw-bold text-info" for="manual_check">
-                                <i class="bi bi-person-check-fill"></i> Потрібна додаткова перевірка фахівцем
-                            </label>
-                            <small class="d-block text-muted ms-5 mt-1">Якщо увімкнено, ви зможете змінити бал за це питання вручну після здачі тесту.</small>
-                        </div>
+                        <?php if ($current_event_type !== 'contest'): ?>
+                            <div class="form-check form-switch mb-4 p-3 bg-body-tertiary border rounded">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="manual_check" name="requires_manual_check" value="1">
+                                <label class="form-check-label fw-bold text-info" for="manual_check">
+                                    <i class="bi bi-person-check-fill"></i> Потрібна додаткова перевірка фахівцем
+                                </label>
+                                <small class="d-block text-muted ms-5 mt-1">Якщо увімкнено, ви зможете змінити бал за це питання вручну після здачі тесту.</small>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-info mb-4 border-info">
+                                <i class="bi bi-info-circle-fill"></i> <strong>Це завдання конкурсу.</strong> 
+                                <br><small>Відповідь на це питання обов'язково потребуватиме вашої ручної перевірки та оцінювання після того, як учасник здасть роботу.</small>
+                            </div>
+                        <?php endif; ?>
 
                         <div id="options_block" class="bg-body-tertiary p-3 border rounded mb-3">
                             <label class="form-label fw-bold">Варіанти відповідей:</label>

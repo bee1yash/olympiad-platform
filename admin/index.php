@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_olympiad'])) {
         $pdo->prepare("DELETE FROM olympiads WHERE id = ?")->execute([$olymp_id]);
 
         $pdo->commit();
-        $message = "Олімпіаду та всі пов'язані з нею дані успішно видалено.";
+        $message = "Змагання та всі пов'язані з ним дані успішно видалено.";
     } catch (Exception $e) {
         $pdo->rollBack();
         $error = "Помилка видалення: " . $e->getMessage();
@@ -46,7 +46,7 @@ $olympiads = $stmt->fetchAll();
         <div>
             <a href="users.php" class="btn btn-primary me-2">Управління користувачами</a>
             <a href="create_olympiad.php" class="btn btn-success">
-                + Створити олімпіаду
+                + Створити змагання
             </a>
         </div>
     </div>
@@ -96,7 +96,7 @@ $olympiads = $stmt->fetchAll();
     <a href="edit_olympiad.php?id=<?= $olympiad['id'] ?>" class="btn btn-sm btn-warning">
         <i class="bi bi-pencil"></i> Редагувати
     </a>
-    <form method="POST" class="d-inline" onsubmit="return confirm('Ви впевнені? Це безповоротно видалить олімпіаду, всі питання та результати студентів!');">
+    <form method="POST" class="d-inline" onsubmit="return confirm('Ви впевнені? Це безповоротно видалить змагання, всі питання та результати студентів!');">
         <input type="hidden" name="olympiad_id" value="<?= $olympiad['id'] ?>">
         <button type="submit" name="delete_olympiad" class="btn btn-sm btn-danger">
             <i class="bi bi-trash"></i> Видалити
@@ -108,7 +108,7 @@ $olympiads = $stmt->fetchAll();
                     </tbody>
                 </table>
             <?php else: ?>
-                <p class="text-muted text-center mb-0">Поки що немає жодної олімпіади.</p>
+                <p class="text-muted text-center mb-0">Поки що немає жодного змагання.</p>
             <?php endif; ?>
         </div>
     </div>
