@@ -2,30 +2,32 @@
 session_start();
 require '../config/db.php';
 
-if (!isset($_SESSION['user_id']) || !isset($_GET['id'])) {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../login.php"); exit;
+}
+
+if (!isset($_GET['id'])) {
     header("Location: index.php"); exit;
 }
 
-$user_id = $_SESSION['user_id'];
-$olympiad_id = (int)$_GET['id'];
+$result_id = (int)$_GET['id'];
 
-$stmt = $pdo->prepare("SELECT * FROM olympiads WHERE id = ?");
-$stmt->execute([$olympiad_id]);
-$olymp = $stmt->fetch();
-
-if (!$olymp) {
-    die("Змагання не знайдено.");
-}
-
-$stmt_res = $pdo->prepare("SELECT * FROM results WHERE user_id = ? AND olympiad_id = ? AND finished_at IS NOT NULL");
-$stmt_res->execute([$user_id, $olympiad_id]);
+$stmt_res = $pdo->prepare("SELECT * FROM results WHERE id = ?");
+$stmt_res->execute([$result_id]);
 $result = $stmt_res->fetch();
 
-if (!$result) {
-    die("Ви ще не завершили це змагання або результатів немає.");
-}
+if (!$result) die("Результат не знайдено.");
 
-$show_answers = (bool)$olymp['show_answers'];
+$user_id = $result['user_id'];
+$olympiad_id = $result['olympiad_id'];
+
+$stmt_olymp = $pdo->prepare("SELECT title FROM olympiads WHERE id = ?");
+$stmt_olymp->execute([$olympiad_id]);
+$olymp = $stmt_olymp->fetch();
+
+$stmt_user = $pdo->prepare("SELECT full_name, username FROM users WHERE id = ?");
+$stmt_user->execute([$user_id]);
+$user = $stmt_user->fetch();
 
 $stmt_ua = $pdo->prepare("SELECT * FROM user_answers WHERE user_id = ? AND olympiad_id = ?");
 $stmt_ua->execute([$user_id, $olympiad_id]);
@@ -55,37 +57,35 @@ $questions = $stmt_q->fetchAll();
 
 <div class="container mt-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Детальний звіт: <?= htmlspecialchars($olymp['title']) ?></h2>
-        <a href="index.php" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> На головну</a>
+        <div>
+            <h2>Детальний звіт учасника</h2>
+            <p class="text-muted mb-0"><i class="bi bi-person-fill"></i> <?= htmlspecialchars($user['full_name']) ?> (<?= htmlspecialchars($user['username']) ?>)</p>
+        </div>
+        <a href="olympiad_report.php?id=<?= $olympiad_id ?>" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад до таблиці
+        </a>
     </div>
 
     <div class="card shadow-sm border-primary mb-4">
         <div class="card-body text-center bg-body-tertiary">
-            <h4 class="text-muted mb-2">Ваш загальний бал</h4>
-            <h1 class="display-4 text-primary fw-bold"><?= $result['total_score'] ?></h1>
+            <h5 class="text-muted mb-2">Загальний бал за змагання: <strong><?= htmlspecialchars($olymp['title']) ?></strong></h5>
+            <h1 class="display-4 text-primary fw-bold"><?= (float)$result['total_score'] ?></h1>
             <p class="text-muted mb-0">Час здачі: <?= date('d.m.Y H:i', strtotime($result['finished_at'])) ?></p>
         </div>
     </div>
-
-    <?php if(!$show_answers): ?>
-        <div class="alert alert-info border-info">
-            <i class="bi bi-info-circle-fill"></i> Адміністратор приховав правильні відповіді для цього змагання. Ви можете бачити лише свої відповіді та отримані бали.
-        </div>
-    <?php endif; ?>
 
     <?php foreach($questions as $index => $q): ?>
         <?php 
             $q_id = $q['id'];
             $u_ans = isset($user_answers[$q_id]) ? $user_answers[$q_id] : ['options' => [], 'text' => '', 'points' => 0];
             $is_fully_correct = ($u_ans['points'] == $q['points']);
-            
             $card_border = $u_ans['points'] > 0 ? ($is_fully_correct ? 'border-success' : 'border-warning') : 'border-danger';
         ?>
         <div class="card mb-4 <?= $card_border ?> shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
                 <strong>Питання <?= $index + 1 ?></strong>
                 <span class="badge <?= $u_ans['points'] > 0 ? 'bg-success' : 'bg-danger' ?> fs-6">
-                    <?= $u_ans['points'] ?> / <?= $q['points'] ?> балів
+                    Отримано: <?= $u_ans['points'] ?> / <?= $q['points'] ?> балів
                 </span>
             </div>
             
@@ -94,23 +94,21 @@ $questions = $stmt_q->fetchAll();
 
                 <?php if($q['question_type'] == 'text'): ?>
                     <div class="mb-2">
-                        <strong>Ваша відповідь:</strong><br>
+                        <strong class="text-muted">Відповідь учасника:</strong><br>
                         <div class="p-2 border rounded <?= $u_ans['points'] > 0 ? 'bg-success-subtle border-success' : 'bg-danger-subtle border-danger' ?>">
                             <?= htmlspecialchars($u_ans['text'] ?: '— (немає відповіді) —') ?>
                         </div>
                     </div>
                     
-                    <?php if($show_answers): ?>
-                        <?php 
-                            $stmt_opt = $pdo->prepare("SELECT option_text FROM options WHERE question_id = ? AND is_correct = 1");
-                            $stmt_opt->execute([$q_id]);
-                            $correct_text = $stmt_opt->fetchColumn();
-                        ?>
-                        <div class="mt-2 text-success">
-                            <strong><i class="bi bi-check-circle-fill"></i> Правильна відповідь:</strong> 
-                            <?= htmlspecialchars($correct_text) ?>
-                        </div>
-                    <?php endif; ?>
+                    <?php 
+                        $stmt_opt = $pdo->prepare("SELECT option_text FROM options WHERE question_id = ? AND is_correct = 1");
+                        $stmt_opt->execute([$q_id]);
+                        $correct_text = $stmt_opt->fetchColumn();
+                    ?>
+                    <div class="mt-2 text-success">
+                        <strong><i class="bi bi-check-circle-fill"></i> Правильна відповідь:</strong> 
+                        <?= htmlspecialchars($correct_text) ?>
+                    </div>
 
                 <?php else: ?>
                     <?php 
@@ -118,36 +116,35 @@ $questions = $stmt_q->fetchAll();
                         $stmt_opt->execute([$q_id]);
                         $options = $stmt_opt->fetchAll();
                     ?>
-                    <ul class="list-group list-group-flush">
+                    <ul class="list-group list-group-flush border rounded">
                         <?php foreach($options as $opt): ?>
                             <?php 
-                                $is_selected_by_user = in_array($opt['id'], $u_ans['options']);
-                                $is_correct_option = $opt['is_correct'];
+                                $is_selected = in_array($opt['id'], $u_ans['options']);
+                                $is_correct = $opt['is_correct'];
                                 
                                 $bg_class = '';
                                 $icon = '';
                                 
-                                if ($is_selected_by_user) {
-                                    if ($is_correct_option) {
-                                        $bg_class = 'list-group-item-success fw-bold'; 
-                                        $icon = '<i class="bi bi-check-circle-fill text-success ms-2"></i>';
+                                if ($is_selected) {
+                                    if ($is_correct) {
+                                        $bg_class = 'list-group-item-success fw-bold';
+                                        $icon = '<i class="bi bi-check-circle-fill text-success ms-2" title="Правильний вибір"></i>';
                                     } else {
-                                        $bg_class = 'list-group-item-danger text-decoration-line-through'; 
-                                        $icon = '<i class="bi bi-x-circle-fill text-danger ms-2"></i>';
+                                        $bg_class = 'list-group-item-danger text-decoration-line-through';
+                                        $icon = '<i class="bi bi-x-circle-fill text-danger ms-2" title="Помилковий вибір"></i>';
                                     }
-                                } elseif ($show_answers && $is_correct_option) {
+                                } elseif ($is_correct) {
                                     $bg_class = 'list-group-item-warning fw-bold border-warning';
-                                    $icon = '<i class="bi bi-arrow-left-circle-fill text-warning ms-2" title="Це правильна відповідь"></i>';
+                                    $icon = '<i class="bi bi-arrow-left-circle-fill text-warning ms-2" title="Правильний варіант"></i>';
                                 }
                             ?>
-                            <li class="list-group-item <?= $bg_class ?> d-flex justify-content-between align-items-center">
+                            <li class="list-group-item <?= $bg_class ?> d-flex justify-content-between align-items-center bg-body-tertiary">
                                 <div>
-                                    <?php if($is_selected_by_user): ?>
-                                        <i class="bi bi-record-circle-fill text-primary me-2" title="Ваш вибір"></i>
+                                    <?php if($is_selected): ?>
+                                        <i class="bi bi-record-circle-fill text-primary me-2"></i>
                                     <?php else: ?>
                                         <i class="bi bi-circle me-2 text-muted"></i>
                                     <?php endif; ?>
-                                    
                                     <?= htmlspecialchars($opt['option_text']) ?>
                                 </div>
                                 <?= $icon ?>
@@ -158,13 +155,12 @@ $questions = $stmt_q->fetchAll();
 
                 <?php if($q['requires_manual_check']): ?>
                     <div class="mt-3 small text-muted">
-                        <i class="bi bi-person-check-fill"></i> <em>Це питання перевірялося (або буде перевірено) фахівцем вручну.</em>
+                        <i class="bi bi-person-check-fill"></i> <em>Це питання перевірялося (або очікує перевірки) фахівцем.</em>
                     </div>
                 <?php endif; ?>
             </div>
         </div>
     <?php endforeach; ?>
-    
 </div>
 
 <?php include '../includes/footer.php'; ?>

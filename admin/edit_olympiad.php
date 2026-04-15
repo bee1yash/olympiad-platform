@@ -83,7 +83,7 @@ $end_value = date('Y-m-d\TH:i', strtotime($olympiad['end_time']));
                             <label class="form-label">Ліміт часу (хв)</label>
                             <input type="number" name="time_limit" class="form-control" value="<?= $olympiad['time_limit_minutes'] ?>" required>
                         </div>
-                        <div class="form-check form-switch mb-3 p-3 bg-light border rounded">
+                        <div class="form-check form-switch mb-3 p-3 bg-body-tertiary border rounded">
                             <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="show_answers" name="show_answers" value="1" <?= (isset($olympiad['show_answers']) && $olympiad['show_answers']) ? 'checked' : '' ?>>
                             <label class="form-check-label fw-bold text-success" for="show_answers">
                                 <i class="bi bi-eye-fill"></i> Показувати правильні відповіді студентам після завершення

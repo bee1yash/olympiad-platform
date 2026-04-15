@@ -31,7 +31,7 @@ $submissions = $stmt->fetchAll();
     <div class="card">
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
-                <thead class="table-light">
+                <thead class="bg-body-tertiary">
                     <tr>
                         <th>ID Роботи</th>
                         <th>Дата здачі</th>

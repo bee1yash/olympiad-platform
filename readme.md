@@ -6,6 +6,19 @@ ___
 ### Changelog
 ___
 
+## 1.0.5
+
+
+ADD: [Експорт результатів змагань в CSV, PDF](https://github.com/bee1yash/olympiad-platform/issues/10)
+
+ADD: [Надсилати лист з результатами олімпіади користувачам](https://github.com/bee1yash/olympiad-platform/issues/8)
+
+TWEAK: [Показувати роль користувача на видному місці](https://github.com/bee1yash/olympiad-platform/issues/9)
+
+FIX: Фахівець може перевіряти роботу лише один раз
+
+FIX: CSS fixes
+
 ## 1.0.4
 
 ADD: [Генерація звіту для користувача](https://github.com/bee1yash/olympiad-platform/issues/2)

@@ -41,7 +41,7 @@ if (isset($_SESSION['role'])) {
     </script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg border-bottom mb-4" style="background-color: var(--bs-body-bg);">
+    <nav class="navbar navbar-expand-lg border-bottom mb-4 d-print-none" style="background-color: var(--bs-body-bg);">
         <div class="container">
             <a class="navbar-brand fw-bold text-primary" href="<?= $path_prefix ?>index.php">
                 <i class="bi bi-mortarboard-fill"></i> Olympiad Platform
@@ -56,18 +56,17 @@ if (isset($_SESSION['role'])) {
                 <?php if(isset($_SESSION['user_id'])): ?>
                     <div class="vr"></div> 
                     
-                    <div class="dropdown">
-                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle fs-5 me-2"></i>
-                            <span class="d-none d-sm-inline fw-bold">
-                                <?= htmlspecialchars($_SESSION['full_name']) ?>
-                            </span>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle me-2">
+                            <?= $role_label ?>
+                        </span>
+                        <span class="fw-bold text-primary me-3 d-none d-sm-inline">
+                            <i class="bi bi-person-circle fs-5 align-middle me-1"></i> <?= htmlspecialchars($_SESSION['full_name']) ?>
+                        </span>
+                        
+                        <a href="<?= $path_prefix ?>logout.php" class="btn btn-outline-danger btn-sm fw-bold">
+                            <i class="bi bi-box-arrow-right"></i> Вийти
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li><span class="dropdown-item-text text-muted small">Роль: <strong><?= $role_label ?></strong></span></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="<?= $path_prefix ?>logout.php"><i class="bi bi-box-arrow-right"></i> Вийти</a></li>
-                        </ul>
                     </div>
                 <?php endif; ?>
             </div>
