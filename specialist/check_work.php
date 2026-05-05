@@ -6,8 +6,8 @@ if ($_SESSION['role'] !== 'specialist') { header("Location: ../login.php"); exit
 
 $result_id = (int)$_GET['result_id'];
 $message = '';
+$error = '';
 
-// 1. Отримуємо дані результату на самому початку
 $stmt = $pdo->prepare("SELECT * FROM results WHERE id = ?");
 $stmt->execute([$result_id]);
 $result = $stmt->fetch();
@@ -15,13 +15,11 @@ if (!$result) die("Роботу не знайдено");
 
 $user_id = $result['user_id'];
 $olympiad_id = $result['olympiad_id'];
-// Перевіряємо, чи є замок (якщо раптом колонки ще немає, буде false)
 $is_already_checked = isset($result['is_checked']) ? (bool)$result['is_checked'] : false;
 
-// 2. Обробка форми
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['points'])) {
     if ($is_already_checked) {
-        $message = "Помилка: Ця робота вже була перевірена раніше. Оцінки заблоковано.";
+        $error = "Помилка: Ця робота вже була перевірена раніше. Оцінки заблоковано.";
     } else {
         $new_points = $_POST['points'];
         
@@ -34,9 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['points'])) {
         $stmt_calc->execute([$user_id, $olympiad_id]);
         $total_score = $stmt_calc->fetchColumn() ?: 0;
 
-        // ОНОВЛЕННЯ: Тепер ми також ставимо is_checked = 1
-        $pdo->prepare("UPDATE results SET total_score = ?, is_checked = 1 WHERE id = ?")->execute([$total_score, $result_id]);
-        
         $stmt_info = $pdo->prepare("
             SELECT u.full_name, u.username AS email, o.title 
             FROM users u 
@@ -55,17 +50,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['points'])) {
         $mail_status = sendOlympiadResultEmail($info['email'], $info['full_name'], $info['title'], $total_score, $max_points);
         
         if ($mail_status === true) {
-            $message = "Оцінки успішно оновлено! Загальний бал: {$total_score}. Лист з результатом відправлено студенту.";
+            $pdo->prepare("UPDATE results SET total_score = ?, is_checked = 1 WHERE id = ?")->execute([$total_score, $result_id]);
+            $message = "Оцінки успішно збережено! Загальний бал: {$total_score}. Лист успішно відправлено студенту.";
+            $is_already_checked = true;
         } else {
-            $message = "Оцінки збережено (Бал: {$total_score}), але сталася помилка відправки листа: " . $mail_status;
+            $error = "Сталася помилка відправки листа: " . $mail_status . ". Спробуйте зберегти ще раз.";
         }
-        
-        // Блокуємо інтерфейс для поточного перегляду (щоб кнопка одразу зникла)
-        $is_already_checked = true;
     }
 }
 
-// 3. Отримуємо питання та відповіді
 $sql_qa = "SELECT q.id as q_id, q.question_text, q.question_type, q.points as max_points, q.requires_manual_check,
                   ua.answer_text, ua.points_awarded, ua.option_id,
                   o.option_text as selected_option_text
@@ -87,15 +80,22 @@ $qa_list = $stmt_qa->fetchAll();
     </div>
 
     <?php if($message): ?>
-        <div class="alert <?= strpos($message, 'Помилка') !== false ? 'alert-danger' : 'alert-success' ?> alert-dismissible fade show" role="alert">
-            <i class="bi <?= strpos($message, 'Помилка') !== false ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill' ?>"></i> <?= $message ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill"></i> <strong><?= $message ?></strong>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
-    <?php if($is_already_checked): ?>
-        <div class="alert alert-warning shadow-sm border-warning">
-            <i class="bi bi-lock-fill"></i> <strong>Ця робота вже перевірена.</strong> Оцінки є остаточними та не підлягають змінам. Лист із результатом уже надіслано студенту.
+    <?php if($error): ?>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-x-circle-fill"></i> <strong>Помилка:</strong> <?= $error ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <?php if($is_already_checked && empty($message)): ?>
+        <div class="alert alert-info shadow-sm border-info">
+            <i class="bi bi-lock-fill"></i> <strong>Ця робота вже перевірена.</strong> Оцінки є остаточними та не підлягають змінам. Лист надіслано.
         </div>
     <?php endif; ?>
 
@@ -106,9 +106,9 @@ $qa_list = $stmt_qa->fetchAll();
         <?php foreach($qa_list as $index => $item): ?>
             <?php 
                 $was_manual = (bool)$item['requires_manual_check']; 
-                $is_editable = $was_manual && !$is_already_checked; // Можна редагувати, якщо ще не перевірено
+                $is_editable = $was_manual && !$is_already_checked; 
             ?>
-            <div class="card mb-3 <?= $is_editable ? 'border-primary' : 'border-secondary opacity-75' ?>">
+            <div class="card mb-3 <?= $is_editable ? 'border-primary' : 'border-secondary opacity-75' ?> shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center <?= $is_editable ? 'bg-primary text-white' : 'bg-body-tertiary' ?>">
                     <div>
                         <strong>Питання <?= $index + 1 ?></strong>
@@ -126,18 +126,18 @@ $qa_list = $stmt_qa->fetchAll();
                 </div>
                 
                 <div class="card-body">
-                    <p class="mb-3"><?= nl2br(htmlspecialchars($item['question_text'])) ?></p>
+                    <p class="mb-3 fs-5"><?= nl2br(htmlspecialchars($item['question_text'])) ?></p>
                     
                     <div class="p-3 bg-body-tertiary border rounded mb-3">
                         <strong class="text-muted">Відповідь студента:</strong><br>
                         <?php if($item['question_type'] == 'text'): ?>
-                            <span class="fst-italic fs-5"><?= htmlspecialchars($item['answer_text'] ?? 'Немає відповіді') ?></span>
+                            <span class="fst-italic fs-5 text-primary"><?= htmlspecialchars($item['answer_text'] ?? 'Немає відповіді') ?></span>
                         <?php else: ?>
-                            <span class="fs-5"><?= htmlspecialchars($item['selected_option_text'] ?? 'Не обрано') ?></span>
+                            <span class="fs-5 text-primary"><?= htmlspecialchars($item['selected_option_text'] ?? 'Не обрано') ?></span>
                         <?php endif; ?>
                     </div>
 
-                    <div class="row align-items-center bg-body-tertiary p-2 rounded">
+                    <div class="row align-items-center bg-body-tertiary p-2 rounded mx-0">
                         <div class="col-auto">
                             <label class="col-form-label fw-bold">Отриманий бал:</label>
                         </div>
@@ -160,8 +160,8 @@ $qa_list = $stmt_qa->fetchAll();
         <?php endforeach; ?>
 
         <?php if(!$is_already_checked): ?>
-            <div class="sticky-bottom bg-body-tertiary p-3 border-top shadow-lg rounded">
-                <button type="submit" class="btn btn-success btn-lg w-100"><i class="bi bi-save"></i> Зберегти оцінки</button>
+            <div class="sticky-bottom bg-body-tertiary p-3 border-top shadow-lg rounded mt-4">
+                <button type="submit" class="btn btn-success btn-lg w-100 fw-bold"><i class="bi bi-envelope-check"></i> Зберегти оцінки та надіслати лист</button>
             </div>
         <?php endif; ?>
     </form>

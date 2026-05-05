@@ -26,12 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $end_time = $_POST['end_time'];
     $time_limit = (int) $_POST['time_limit'];
     $show_answers = isset($_POST['show_answers']) ? 1 : 0;
+    $event_type = isset($_POST['event_type']) ? $_POST['event_type'] : 'olympiad';
     $sql = "UPDATE olympiads 
-            SET title = ?, description = ?, start_time = ?, end_time = ?, time_limit_minutes = ?, show_answers = ? 
+            SET title = ?, description = ?, start_time = ?, end_time = ?, time_limit_minutes = ?, show_answers = ?, event_type = ? 
             WHERE id = ?";
-    $stmt_update = $pdo->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     
-    if ($stmt->execute([$title, $description, $start_time, $end_time, $time_limit, $show_answers, $id])) {
+    if ($stmt->execute([$title, $description, $start_time, $end_time, $time_limit, $show_answers, $event_type, $id])) {
         header("Location: index.php");
         exit;
     } else {
